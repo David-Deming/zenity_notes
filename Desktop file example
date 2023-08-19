@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Notes
+GenericName=Notes Script
+Comment=Note taking app using zenity
+Categories=GUInotes;Utility
+Exec=/home/$USER/.local/.bin/notes.sh
+Icon=/home/$USER/.local/.appIcons/scatterBrainsNotes.png
+Keywords=notes;Notes
+NoDisplay=false
+Terminal=false
+TryExec=/home/$USER/.local/.bin/notes.sh
+Type=Application
