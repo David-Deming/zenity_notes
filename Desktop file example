@@ -1,3 +1,8 @@
+Just an example of a desktop file to create a clickable icon on gnome if you want
+replace $USER with your actual username and rename the image to whatever image you pick
+this is based around my own weird idea of where to put things, so adjust as needed
+create this file and name it notes.desktop and place it in ~/.local/share/applications then logout and back in
+
 [Desktop Entry]
 Name=Notes
 GenericName=Notes Script
