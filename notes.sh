@@ -17,7 +17,7 @@ if [[ ! -r "$note_filename" ]]; then
     echo "----------------------------------------" >> "$note_filename"
 fi
 
-# adds each note by appending to the end of the note file
+# adds the first note by appending to the end of the note file
 echo "$(date +"%H:%M") $(zenity --entry --title="Enter Note" --text="Note:")" >> "$note_filename"
 
 # checks if you want to continue or not
@@ -31,8 +31,13 @@ fi
 
 # start looping if you do want to keep adding notes
 while true; do
-    echo "$(date +"%H:%M") $(zenity --entry --title="Create a Note" --text="Enter your note:")" >> "$note_filename"
-    
+    new_note=$(zenity --entry --title="Create a Note" --text="Enter your note:")
+
+    # only add note if it's not empty
+    if [[ ! -z "$new_note" ]]; then
+        echo "$(date +"%H:%M") $new_note" >> "$note_filename"
+    fi
+
     zenity --question --text="Do you want to add another note?" --width=200
     response=$?
 
@@ -40,4 +45,3 @@ while true; do
         break
     fi
 done
-
