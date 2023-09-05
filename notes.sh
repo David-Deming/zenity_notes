@@ -1,47 +1,80 @@
 #!/bin/bash
 
-# bash script using zenity to keep notes throughout the day
+# mark a to-do as complete
+check_off_todo() {
+  local options=""
+  local line_num=0
 
-# check if notes dir exists, if not make it
+  while IFS= read -r line; do
+    ((line_num++))
+    if [[ -n "$line" ]]; then
+      options+="$line_num $line\n"
+    fi
+  done < "$todo_filename"
+
+  if [[ -z "$options" ]]; then
+    zenity --info --text="No uncompleted to-dos to check off."
+    return
+  fi
+
+  local selected=$(echo -e "$options" | zenity --list --column="Line" --column="To-Do" --title="Check Off a To-Do")
+
+  if [[ -n "$selected" ]]; then
+    local line_num=$(echo "$selected" | awk '{print $1}')
+    sed -i "${line_num}d" "$todo_filename"
+  fi
+}
+
+
+# directories and files
 notes_dir="$HOME/Documents/Notes"
+todo_filename="$notes_dir/todo.txt"
 mkdir -p "$notes_dir"
 
-# set the current date
+# dates
 current_date=$(date +"%Y-%m-%d")
-
-# check if todays note file already exists, if it doesn't then it formats the date stamp at the start
 note_filename="$notes_dir/$current_date.txt"
+
+# do fancy shit if note or todo file doesn't exist
 if [[ ! -r "$note_filename" ]]; then
     echo "----------------------------------------" >> "$note_filename"
     echo "Date: $current_date" >> "$note_filename"
     echo "----------------------------------------" >> "$note_filename"
 fi
 
-# adds the first note by appending to the end of the note file
-echo "$(date +"%H:%M") $(zenity --entry --title="Enter Note" --text="Note:")" >> "$note_filename"
-
-# checks if you want to continue or not
-zenity --question --text="Keep taking notes?" --width=200
-response=$?
-
-# if you don't want to continue it exits
-if [[ $response -ne 0 ]]; then
-    exit 0
+if [[ ! -r "$todo_filename" ]]; then
+    echo "----------------------------------------" >> "$todo_filename"
+    echo "To-Do List" >> "$todo_filename"
+    echo "----------------------------------------" >> "$todo_filename"
 fi
 
-# start looping if you do want to keep adding notes
+# loop for adding notes or to-dos
 while true; do
-    new_note=$(zenity --entry --title="Create a Note" --text="Enter your note:")
+  choice=$(zenity --list --title="Choose Action" --column="Options" "Add Note or todo" "View To-Do List" "Check Off To-Do" "Quit")
 
-    # only add note if it's not empty
-    if [[ ! -z "$new_note" ]]; then
-        echo "$(date +"%H:%M") $new_note" >> "$note_filename"
-    fi
+  case "$choice" in
+    "Add Note or todo")
+        new_content=$(zenity --entry --title="Create a Note or To-Do" --text="Enter your note or to-do:")
+        action=$(zenity --list --title="Save As" --column="Options" "Note" "To-Do")
 
-    zenity --question --text="Do you want to add another note?" --width=200
-    response=$?
-
-    if [[ $response -ne 0 ]]; then
-        break
-    fi
+        if [[ $action == "Note" ]]; then
+            if [[ ! -z "$new_content" ]]; then
+                echo "$(date +"%H:%M") $new_content" >> "$note_filename"
+            fi
+        elif [[ $action == "To-Do" ]]; then
+            if [[ ! -z "$new_content" ]]; then
+                echo "$new_content" >> "$todo_filename"
+            fi
+        fi
+        ;;
+    "View To-Do List")
+        zenity --text-info --filename="$todo_filename"
+        ;;
+    "Check Off To-Do")
+        check_off_todo
+        ;;
+    "Quit")
+        exit 0
+        ;;
+  esac
 done
